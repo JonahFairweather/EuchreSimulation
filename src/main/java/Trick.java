@@ -1,3 +1,5 @@
+package main.java;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +17,7 @@ public class Trick {
         Plays.remove(0);
         for(PlayerCard Play : Plays){
             if(!Winner.Card.CompareTo(Play.Card)){
-
+                //System.out.println(Play.Card.ToString() + " has beaten " + Winner.Card.ToString());
                 Winner = Play;
 
             }

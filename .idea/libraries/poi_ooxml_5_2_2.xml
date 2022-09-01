@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="poi-ooxml-5.2.2">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/poi-ooxml-5.2.2.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/jxls-jexcel-1.0.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

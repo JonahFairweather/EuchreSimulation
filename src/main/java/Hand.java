@@ -1,14 +1,16 @@
+package main.java;
+
 import java.util.*;
 import java.util.function.Predicate;
 
 public class Hand {
 
-    private Suit TrumpSuit = Suit.NoSuit;
+    public Suit TrumpSuit = Suit.NoSuit;
     public ArrayList<Card> HeldCards = new ArrayList<>();
 
-    public Card GetCard(int Index, Suit LedSuit) {
-        if (Index > HeldCards.size() - 1) throw new IndexOutOfBoundsException("I do not have that many cards");
-        return HeldCards.get(Index);
+    public Card GetCard(Trick CurTrick, Suit LedSuit) {
+        ArrayList<Card> LegalCards = GetLegalCards(LedSuit);
+        return LegalCards.get(0);
     }
 
     public void AddToCards(Card CardToAdd){
@@ -29,7 +31,7 @@ public class Hand {
             }
         }
 
-        System.out.println("Ditching " + WorstCard.ToString());
+        //System.out.println("Ditching " + WorstCard.ToString());
         return WorstCard;
 
     }
@@ -120,7 +122,12 @@ public class Hand {
     public void SetLedSuit(Suit ToSet){
         for(Card c : HeldCards){
             if(ToSet == c.GetSuit()){
-                c.SetIsLedSuit(true);
+                if(c.GetIsLeftBauer()){
+                    c.SetIsLedSuit(false);
+                }else{
+                    c.SetIsLedSuit(true);
+                }
+
             }else{
                 if(c.GetIsLeftBauer() && ToSet == TrumpSuit){
                     c.SetIsLedSuit(true);
@@ -164,7 +171,7 @@ public class Hand {
     public Card GetRandomCard(Suit LedSuit) {
         Random rn = new Random();
         ArrayList<Card> LegalCards = GetLegalCards(LedSuit);
-        return LegalCards.remove(rn.nextInt(LegalCards.size()));
+        return LegalCards.get(rn.nextInt(LegalCards.size()));
     }
 
     public ArrayList<Card> GetLegalCards(Suit LedSuit){

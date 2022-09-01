@@ -1,3 +1,5 @@
+package main.java;
+
 public class CardProperties {
     public boolean bIsLeftBauer = false;
 
