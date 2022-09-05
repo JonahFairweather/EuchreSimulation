@@ -1,5 +1,8 @@
 package main.java;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class Player {
 
     private Hand Cards = new Hand();
@@ -39,8 +42,10 @@ public class Player {
         return Cards.GetHandStrength(PossibleSuit) >= 8;
     }
 
-    public Card PlayCard(Suit LedSuit){
-        return Cards.GetRandomCard(LedSuit);
+    public Card PlayCard(Color TeamColor, Suit LedSuit, Trick CurrentTrick, HashMap<Player, ArrayList<Card>> HandPlayerHistories){
+        // In order to know which card is best to play you need the current trick, current winner, the current hand's trick score,
+        // Each player's card history for this hand.
+        return Cards.GetCard(TeamColor, LedSuit, CurrentTrick, HandPlayerHistories);
     }
 
     public void SetTrumps(Suit TrumpSuit){
@@ -63,8 +68,8 @@ public class Player {
         return "Player name: " + Name + "\nPlayer Hand: " + Cards.ToString();
     }
 
-    public Card DitchCard(){
-        return Cards.DitchCard();
+    public Card DitchCard(ArrayList<Card> Cards1){
+        return Cards.DitchCard(Cards1);
     }
 
 

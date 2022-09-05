@@ -8,9 +8,41 @@ public class Hand {
     public Suit TrumpSuit = Suit.NoSuit;
     public ArrayList<Card> HeldCards = new ArrayList<>();
 
-    public Card GetCard(Trick CurTrick, Suit LedSuit) {
+    public Card GetCard(Color TeamColor, Suit LedSuit, Trick CurrentTrick, HashMap<Player, ArrayList<Card>> HandPlayerHistories) {
+
         ArrayList<Card> LegalCards = GetLegalCards(LedSuit);
-        return LegalCards.get(0);
+        if(CurrentTrick.PickWinner() == null){
+            // If we are the leader
+            for(Card c : LegalCards){
+                if(c.GetRank() == Rank.ACE && !c.GetIsTrump()){
+                    return c;
+                }
+            }
+            return LegalCards.get(LegalCards.size()-1);
+        }
+        ArrayList<Card> CardsWhichWillWin = GetWinners((ArrayList<Card>) LegalCards.clone(), CurrentTrick);
+        if(CurrentTrick.GetNumPlays() == 3){
+            // We have the last play
+            if(CurrentTrick.PickWinner().Player.Color == TeamColor){
+                return DitchCard(LegalCards);
+            }
+
+        }
+        if(CardsWhichWillWin.size() > 0){
+            return CardsWhichWillWin.get(0);
+        }else{
+            return DitchCard(LegalCards);
+        }
+
+
+    }
+
+
+
+    private ArrayList<Card> GetWinners(ArrayList<Card> legalCards, Trick currentTrick) {
+        legalCards.removeIf(c -> !c.CompareTo(currentTrick.PickWinner().Card));
+        return legalCards;
+
     }
 
     public void AddToCards(Card CardToAdd){
@@ -21,11 +53,11 @@ public class Hand {
         HeldCards.clear();
     }
 
-    public Card DitchCard(){
+    public Card DitchCard(ArrayList<Card> Cards){
         // This method ditches the worst card in the current hand given the trump, information here is only known to you,
         // Whoever told you to pick up the card is pretty much irrelevant
-        Card WorstCard = HeldCards.get(0);
-        for(Card c : HeldCards){
+        Card WorstCard = Cards.get(0);
+        for(Card c : Cards){
             if(!c.GetIsTrump() && c.GetRank() != Rank.ACE){
                 WorstCard = c;
             }
@@ -196,6 +228,20 @@ public class Hand {
                 }
             }
         }
+        Collections.sort(LegalCards, new Comparator<Card>() {
+            @Override
+            public int compare(Card o1, Card o2) {
+                if(o1.GetSuit().compareTo(o2.GetSuit()) > 0){
+
+                    return 1;
+                }else if(o1.GetSuit().compareTo(o2.GetSuit()) < 0){
+                    return -1;
+                }else{
+                    // suits are equal
+                    return o1.GetRank().compareTo(o2.GetRank());
+                }
+            }
+        });
         return LegalCards;
     }
 

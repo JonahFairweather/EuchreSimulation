@@ -56,6 +56,7 @@ public class GameSimulator {
         Game.SetCanadianLoner(true);
         Game.SetAloneHandsAllowed(true);
         long StartTime = System.nanoTime();
+        String Intelligence = "(30p)";
 
         while(TotalPoints > 0){
             Game.SimulateHand();
@@ -89,7 +90,7 @@ public class GameSimulator {
 
         Game.PrintAllBauerStats();
 
-        Game.WriteAbstractToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<AbstractHandStatistics>() {
+        Game.WriteAbstractToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", Intelligence, new Comparator<AbstractHandStatistics>() {
             @Override
             public int compare(AbstractHandStatistics o1, AbstractHandStatistics o2) {
                 if (o1.AverageNumTricksWon() > o2.AverageNumTricksWon()) {
@@ -113,7 +114,7 @@ public class GameSimulator {
             }
         });
 
-        Game.PrintCardStatsToSheet("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<CardStatistics>() {
+        Game.PrintCardStatsToSheet("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", Intelligence, new Comparator<CardStatistics>() {
             @Override
             public int compare(CardStatistics o1, CardStatistics o2) {
                 if (o1.GetAverageTricksWon() > o2.GetAverageTricksWon()) {
@@ -131,7 +132,7 @@ public class GameSimulator {
             }
         });
 
-//        Game.WriteToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<HandStatistics>() {
+//        Game.WriteToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", Intelligence, new Comparator<HandStatistics>() {
 //            @Override
 //            public int compare(HandStatistics o1, HandStatistics o2) {
 //                if (o1.GetNumOccurrences() > o2.GetNumOccurrences()) {

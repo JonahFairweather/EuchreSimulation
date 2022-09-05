@@ -25,6 +25,8 @@ public class EuchreGame {
 
     private int NumHandsPlayed;
 
+    private HashMap<Player, ArrayList<Card>> CurrentHandHistories;
+
     private int NumHandsWithUpturnedJack;
 
     private int NumWithBauerTurnedDown;
@@ -158,6 +160,8 @@ public class EuchreGame {
         Random rd = new Random();
         int DealerIndex = rd.nextInt(Players.size());
 
+        CurrentHandHistories = new HashMap<>();
+
         Dealer = Players.get(DealerIndex);
         Dealer.bIsDealer = true;
         int LeaderIndex = DealerIndex + 1;
@@ -217,7 +221,7 @@ public class EuchreGame {
             CurrentPlayer.SetTrumps(CallableTrumpSuit);
             if(CurrentPlayer == Dealer){
                 CurrentPlayer.AddToHand(UpTurnedCard);
-                Card temp = CurrentPlayer.DitchCard();
+                Card temp = CurrentPlayer.DitchCard(CurrentPlayer.GetHand().HeldCards);
                 CurrentPlayer.RemoveFromHand(temp);
 
 
@@ -239,7 +243,7 @@ public class EuchreGame {
             }else{
                 if(CurrentPlayer.WantsSuitAsTrump(CallableTrumpSuit)){
                     Dealer.AddToHand(UpTurnedCard);
-                    Card c = Dealer.DitchCard();
+                    Card c = Dealer.DitchCard(Dealer.GetHand().HeldCards);
                     Dealer.RemoveFromHand(c);
                     //System.out.println("Player " + CurrentPlayer.GetName() + " has called " + CallableTrumpSuit.toString() + " as Trump."
                            // + " Their hand contains:\n" + CurrentPlayer.GetHand().ToString());
@@ -416,7 +420,8 @@ public class EuchreGame {
 
 
         Trick CurrentTrick = new Trick();
-        Card CardPlay = CurrentPlayer.PlayCard(Suit.NoSuit);
+        CurrentTrick.setTrumpSuit(TrumpSuit);
+        Card CardPlay = CurrentPlayer.PlayCard(CurrentPlayer.Color, Suit.NoSuit, CurrentTrick, CurrentHandHistories);
         PlayerCard Play = new PlayerCard(CurrentPlayer, CardPlay);
         Suit LedSuit = Play.Card.GetSuit();
         for(Player p : Players){
@@ -436,7 +441,7 @@ public class EuchreGame {
         CurrentPlayer = Players.get(Index);
         CurrentTrick.AddPlayerCard(Play);
         for(int i = 0; i <= 2; i++){
-            Card c = CurrentPlayer.PlayCard(LedSuit);
+            Card c = CurrentPlayer.PlayCard(CurrentPlayer.Color, LedSuit, CurrentTrick, CurrentHandHistories);
             CurrentPlayer.CurrentCardStats = CardStatistics.GetStatisticsForCard(c);
             CurrentPlayer.RemoveFromHand(c);
             PlayerCard PlayersPlay = new PlayerCard(CurrentPlayer, c);
@@ -505,11 +510,11 @@ public class EuchreGame {
         }
     }
 
-    public void PrintCardStatsToSheet(String Filename, Comparator<CardStatistics> Comp, int PointsSimulated, Predicate<CardStatistics> FilterBy){
+    public void PrintCardStatsToSheet(String Filename, String Intelligence, Comparator<CardStatistics> Comp, int PointsSimulated, Predicate<CardStatistics> FilterBy){
         try{
             StringBuilder Str = new StringBuilder();
             Str.append(Filename);
-            Str.append("\\EuchreStats.xlsx");
+            Str.append("\\TestingStats.xlsx");
             FileInputStream file = new FileInputStream(new File(Str.toString()));
 
             Workbook Workbook = new XSSFWorkbook(file);
@@ -517,6 +522,7 @@ public class EuchreGame {
             StringBuilder Str2 = new StringBuilder();
             Str2.append(PointsSimulated);
             Str2.append("CardStats");
+            Str2.append(Intelligence);
             if(Workbook.getSheet(Str2.toString()) != null){
                 int Version = 2;
                 while (Workbook.getSheet(Str2.toString()) != null){
@@ -618,17 +624,18 @@ public class EuchreGame {
         });
     }
 
-    public void WriteAbstractToFile(String Filename, Comparator<AbstractHandStatistics> Comp, int PointsSimulated, Predicate<AbstractHandStatistics> FilterBy){
+    public void WriteAbstractToFile(String Filename, String Intelligence, Comparator<AbstractHandStatistics> Comp, int PointsSimulated, Predicate<AbstractHandStatistics> FilterBy){
         try{
             StringBuilder Str = new StringBuilder();
             Str.append(Filename);
-            Str.append("\\EuchreStats.xlsx");
+            Str.append("\\TestingStats.xlsx");
             FileInputStream file = new FileInputStream(new File(Str.toString()));
 
             Workbook Workbook = new XSSFWorkbook(file);
             StringBuilder Str2 = new StringBuilder();
             Str2.append(PointsSimulated);
             Str2.append("AbstractStats");
+            Str2.append(Intelligence);
             if(Workbook.getSheet(Str2.toString()) != null){
                 int Version = 2;
                 while (Workbook.getSheet(Str2.toString()) != null){
@@ -660,18 +667,19 @@ public class EuchreGame {
         }
     }
 
-    public void WriteToFile(String Filename, Comparator<HandStatistics> Comp, int PointsSimulated, Predicate<HandStatistics> FilterBy){
+    public void WriteToFile(String Filename, String Intelligence, Comparator<HandStatistics> Comp, int PointsSimulated, Predicate<HandStatistics> FilterBy){
 
         try{
             StringBuilder Str = new StringBuilder();
             Str.append(Filename);
-            Str.append("\\EuchreStats.xlsx");
+            Str.append("\\TestingStats.xlsx");
             FileInputStream file = new FileInputStream(new File(Str.toString()));
 
             Workbook Workbook = new XSSFWorkbook(file);
             StringBuilder Str2 = new StringBuilder();
             Str2.append(PointsSimulated);
             Str2.append("AllStats");
+            Str2.append(Intelligence);
             if(Workbook.getSheet(Str2.toString()) != null){
                 int Version = 2;
                 while (Workbook.getSheet(Str2.toString()) != null){
