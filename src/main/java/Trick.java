@@ -16,12 +16,15 @@ public class Trick {
         PlayerCard Winner = Plays.get(0);
         Plays.remove(0);
         for(PlayerCard Play : Plays){
+
             if(!Winner.Card.CompareTo(Play.Card)){
                 //System.out.println(Play.Card.ToString() + " has beaten " + Winner.Card.ToString());
+
                 Winner = Play;
 
             }
             //System.out.println(Winner.Card.ToString() + " has won!");
+
 
         }
         return Winner;

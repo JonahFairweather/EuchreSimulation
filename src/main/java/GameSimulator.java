@@ -65,61 +65,95 @@ public class GameSimulator {
 
 
 
-        Game.PrintHandStats(new Comparator<HandStatistics>() {
+//        Game.PrintHandStats(new Comparator<HandStatistics>() {
+//            @Override
+//            public int compare(HandStatistics o1, HandStatistics o2) {
+//                if(o1.AverageTricksWon() > o2.AverageTricksWon()) {
+//                    return 1;
+//                }else if(o1.AverageTricksWon() < o2.AverageTricksWon()){
+//                    return -1;
+//                }else{
+//                    if(o1.NumTricksWon > o2.NumTricksWon){
+//                        return 1;
+//                    }else if(o1.NumTricksWon < o2.NumTricksWon){
+//                        return -1;
+//                    }else{
+//                        return 0;
+//                    }
+//                }
+//
+//            }
+//        });
+
+        //Game.PrintAbstractStats();
+
+        Game.PrintAllBauerStats();
+
+        Game.WriteAbstractToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<AbstractHandStatistics>() {
             @Override
-            public int compare(HandStatistics o1, HandStatistics o2) {
-                if(o1.AverageTricksWon() > o2.AverageTricksWon()) {
+            public int compare(AbstractHandStatistics o1, AbstractHandStatistics o2) {
+                if (o1.AverageNumTricksWon() > o2.AverageNumTricksWon()) {
                     return 1;
-                }else if(o1.AverageTricksWon() < o2.AverageTricksWon()){
+                } else if (o2.AverageNumTricksWon() < o2.AverageNumTricksWon()) {
                     return -1;
-                }else{
-                    if(o1.NumTricksWon > o2.NumTricksWon){
+                } else {
+                    if (o1.GetNumOccurrences() > o2.GetNumOccurrences()) {
                         return 1;
-                    }else if(o1.NumTricksWon < o2.NumTricksWon){
+                    } else if(o2.GetNumOccurrences() < o2.GetNumOccurrences()) {
                         return -1;
                     }else{
                         return 0;
                     }
                 }
-
+            }
+        }, PointsAtStart, new Predicate<AbstractHandStatistics>() {
+            @Override
+            public boolean test(AbstractHandStatistics abstractHandStatistics) {
+                return true;
             }
         });
 
-        Game.PrintAllBauerStats();
-
-        Game.WriteToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<HandStatistics>() {
+        Game.PrintCardStatsToSheet("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<CardStatistics>() {
             @Override
-            public int compare(HandStatistics o1, HandStatistics o2) {
-                if (o1.GetNumOccurrences() > o2.GetNumOccurrences()) {
+            public int compare(CardStatistics o1, CardStatistics o2) {
+                if (o1.GetAverageTricksWon() > o2.GetAverageTricksWon()) {
                     return 1;
-                } else if (o1.GetNumOccurrences() < o2.GetNumOccurrences()) {
+                } else if (o1.GetAverageTricksWon() < o2.GetAverageTricksWon()) {
                     return -1;
                 } else {
-                    if (o1.AverageTricksWon() > o2.AverageTricksWon()) {
-                        return 1;
-                    } else if (o1.AverageTricksWon() < o2.AverageTricksWon()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
+                    return 0;
                 }
             }
-        }, PointsAtStart, new Predicate<HandStatistics>() {
+        }, PointsAtStart, new Predicate<CardStatistics>() {
             @Override
-            public boolean test(HandStatistics handStatistics) {
-                int NumJacks = 0;
-                int NumAces = 0;
-                for(Card c : handStatistics.CardsHeldAtStart){
-                    if(c.GetRank() == Rank.ACE){
-                        NumAces++;
-                    }else if(c.GetRank() == Rank.JACK){
-                        NumJacks++;
-                    }
-                }
-
-                return (NumAces >= 4) || (NumJacks == 4);
+            public boolean test(CardStatistics cardStatistics) {
+                return true;
             }
         });
+
+//        Game.WriteToFile("C:\\Users\\jonah\\IdeaProjects\\EuchreSimulation\\WrittenFiles", new Comparator<HandStatistics>() {
+//            @Override
+//            public int compare(HandStatistics o1, HandStatistics o2) {
+//                if (o1.GetNumOccurrences() > o2.GetNumOccurrences()) {
+//                    return 1;
+//                } else if (o1.GetNumOccurrences() < o2.GetNumOccurrences()) {
+//                    return -1;
+//                } else {
+//                    if (o1.AverageTricksWon() > o2.AverageTricksWon()) {
+//                        return 1;
+//                    } else if (o1.AverageTricksWon() < o2.AverageTricksWon()) {
+//                        return -1;
+//                    } else {
+//                        return 0;
+//                    }
+//                }
+//            }
+//        }, PointsAtStart, new Predicate<HandStatistics>() {
+//            @Override
+//            public boolean test(HandStatistics handStatistics) {
+//                return true;
+//            }
+//        });
         System.out.println("The program took " + (System.nanoTime() - StartTime) + " to run.");
 
     }

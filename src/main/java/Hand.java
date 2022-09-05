@@ -71,7 +71,7 @@ public class Hand {
         for(Card c : HeldCards){
             if(TrumpSuit == c.GetSuit()){
                 c.SetIsTrump(true);
-            }else if(c.GetRank() == Rank.JACK && c.GetColor() == TrumpColor){
+            }else if(c.GetRank() == Rank.JACK && c.GetColor() == TrumpColor && !c.GetIsTrump()){
                 c.SetIsTrump(true);
                 c.SetIsLeftBauer(true);
             }

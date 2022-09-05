@@ -10,6 +10,10 @@ public class Player {
 
     public HandStatistics CurrentHandStats;
 
+    public AbstractHandStatistics CurrentAbstractStatistics;
+
+    public CardStatistics CurrentCardStats;
+
     private String Name;
 
     public Color Color;

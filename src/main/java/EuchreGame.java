@@ -17,7 +17,7 @@ public class EuchreGame {
 
     public int PointsScored;
 
-    private Suit TrumpSuit;
+    public Suit TrumpSuit;
 
     private Suit UpturnedSuit;
 
@@ -32,6 +32,8 @@ public class EuchreGame {
     private HashMap<Hand, Integer> TricksWonByHand = new HashMap<>();
 
     private HashSet<HandStatistics> HandStats = new HashSet<>();
+
+    private HashSet<CardStatistics> CardStats = new HashSet<>();
 
 
 
@@ -173,21 +175,21 @@ public class EuchreGame {
             p.SortCards();
            // System.out.println(p.ToString());
             //Cache this hand and then map it to the
-            HandStatistics CurrentHandStats = new HandStatistics();
-            CurrentHandStats.CacheCards(p);
-            if(HandStats.contains(CurrentHandStats)){
-                //System.out.println("Identical Hand Stats Found");
-                for(HandStatistics h : HandStats){
-                    if(h.hashCode() == CurrentHandStats.hashCode()){
-                        p.CurrentHandStats = h;
-                    }
-                }
-            }else{
-                p.CurrentHandStats = CurrentHandStats;
-                //System.out.println("Adding Hand Stats");
-                HandStats.add(CurrentHandStats);
-               // System.out.println(HandStats.size());
-            }
+//            HandStatistics CurrentHandStats = new HandStatistics();
+//            CurrentHandStats.CacheCards(p);
+//            if(HandStats.contains(CurrentHandStats)){
+//                //System.out.println("Identical Hand Stats Found");
+//                for(HandStatistics h : HandStats){
+//                    if(h.hashCode() == CurrentHandStats.hashCode()){
+//                        p.CurrentHandStats = h;
+//                    }
+//                }
+//            }else{
+//                p.CurrentHandStats = CurrentHandStats;
+//                //System.out.println("Adding Hand Stats");
+//                HandStats.add(CurrentHandStats);
+//               // System.out.println(HandStats.size());
+//            }
         }
 
         Card UpTurnedCard = Deck.get(Deck.size() - 1);
@@ -316,12 +318,13 @@ public class EuchreGame {
             }
 
         }
-
+        SetHandTrump(TrumpSuit);
         //At this point the trump has been picked, cards are FINAL
         CheckIfBothBauersBuried();
 
         for(Player p : Players){
-            p.CurrentHandStats.SetCurrentTrumpSuit(TrumpSuit);
+//            p.CurrentHandStats.SetCurrentTrumpSuit(TrumpSuit);
+            p.CurrentAbstractStatistics = AbstractHandStatistics.GetHandStats(p.GetHand().HeldCards, TrumpSuit);
         }
 
 
@@ -342,8 +345,10 @@ public class EuchreGame {
         }
         for(Player p : Players){
             //System.out.println(p.GetName() + " won " + p.NumTricksWon + " tricks.");
-            p.CurrentHandStats.IncreaseNumOccurrences();
-            p.CurrentHandStats.IncreaseNumTricksWon(p.NumTricksWon);
+//            p.CurrentHandStats.IncreaseNumOccurrences();
+//            p.CurrentHandStats.IncreaseNumTricksWon(p.NumTricksWon);
+            p.CurrentAbstractStatistics.IncreaseNumOccurrence();
+            p.CurrentAbstractStatistics.IncreaseNumTricksWon(p.NumTricksWon);
         }
        // System.out.println("Red team won: " + RedTeamTricks + " Black team won: " + BlackTeamTricks
                 //+ " " + TeamWhoCalled.toString() + " team called the suit.\n");
@@ -403,16 +408,23 @@ public class EuchreGame {
         }
     }
     public void PlayTrick(){
+        for(Player p : Players){
+            p.SetLedSuit(Suit.NoSuit);
+        }
         Player CurrentPlayer = Leader;
+
+
 
         Trick CurrentTrick = new Trick();
         Card CardPlay = CurrentPlayer.PlayCard(Suit.NoSuit);
-        CurrentPlayer.RemoveFromHand(CardPlay);
         PlayerCard Play = new PlayerCard(CurrentPlayer, CardPlay);
         Suit LedSuit = Play.Card.GetSuit();
         for(Player p : Players){
             p.SetLedSuit(LedSuit);
         }
+        CurrentPlayer.CurrentCardStats = CardStatistics.GetStatisticsForCard(CardPlay);
+        CurrentPlayer.RemoveFromHand(CardPlay);
+
         if(VerbosePlayerInfo){
             System.out.println("Player: " + CurrentPlayer.GetName() + " has led: " + Play.Card.ToString() +
                     (Play.Card.GetIsTrump() ? "[T]" : "" + (Play.Card.GetIsLedSuit() ? "[L]" : "")));
@@ -425,6 +437,7 @@ public class EuchreGame {
         CurrentTrick.AddPlayerCard(Play);
         for(int i = 0; i <= 2; i++){
             Card c = CurrentPlayer.PlayCard(LedSuit);
+            CurrentPlayer.CurrentCardStats = CardStatistics.GetStatisticsForCard(c);
             CurrentPlayer.RemoveFromHand(c);
             PlayerCard PlayersPlay = new PlayerCard(CurrentPlayer, c);
             CurrentTrick.AddPlayerCard(PlayersPlay);
@@ -454,8 +467,17 @@ public class EuchreGame {
         }
 
         PlayerCard Winner = CurrentTrick.PickWinner();
+        Player TrickWinner = Winner.Player;
+        for(Player p : Players){
+            p.CurrentCardStats.IncrementNumOccurrences();
+            if(p == TrickWinner){
+                p.CurrentCardStats.IncrementNumTricksWon();
+
+            }
+        }
         Leader = Winner.Player;
         Winner.Player.NumTricksWon++;
+
         if(VerbosePlayerInfo){
             System.out.println("Player " + Winner.Player.GetName() + " has won with: " + Winner.Card.ToString());
         }
@@ -478,9 +500,93 @@ public class EuchreGame {
             }
         }
         if(BauersFound == 2){
-            System.out.println("Both bauers are buried!");
+
             HandsWithBothBuried++;
         }
+    }
+
+    public void PrintCardStatsToSheet(String Filename, Comparator<CardStatistics> Comp, int PointsSimulated, Predicate<CardStatistics> FilterBy){
+        try{
+            StringBuilder Str = new StringBuilder();
+            Str.append(Filename);
+            Str.append("\\EuchreStats.xlsx");
+            FileInputStream file = new FileInputStream(new File(Str.toString()));
+
+            Workbook Workbook = new XSSFWorkbook(file);
+
+            StringBuilder Str2 = new StringBuilder();
+            Str2.append(PointsSimulated);
+            Str2.append("CardStats");
+            if(Workbook.getSheet(Str2.toString()) != null){
+                int Version = 2;
+                while (Workbook.getSheet(Str2.toString()) != null){
+                    Str2.append("v").append(Version);
+                    if(Workbook.getSheet(Str2.toString()) != null){
+                        Str2.delete(Str2.length()-2, Str2.length()-1);
+                        Version++;
+                    }
+                }
+            }
+
+
+            Sheet sheet = Workbook.createSheet(Str2.toString());
+            sheet.setColumnWidth(0, 6000);
+            sheet.setColumnWidth(1, 4000);
+            ArrayList<CardStatistics> Cards = CardStatistics.getCardStatisticsHold();
+            Collections.sort(Cards, Comp);
+            Cards.removeIf(h -> !FilterBy.test(h));
+            for(int i = 0; i <= Cards.size() - 1 ; i++){
+
+                WriteCardStatisticsToRow(i, sheet, Cards.get(i));
+            }
+            FileOutputStream Output = new FileOutputStream(Str.toString());
+            Workbook.write(Output);
+            Workbook.close();
+        }catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void WriteCardStatisticsToRow(int i, Sheet sheet, CardStatistics Stats){
+        Row CurrentRow = sheet.createRow(i);
+        Cell FirstCell = CurrentRow.createCell(0);
+        StringBuilder Str = new StringBuilder();
+
+        FirstCell.setCellValue(Stats.ToString());
+
+        Cell SecondCell = CurrentRow.createCell(1);
+        SecondCell.setCellValue(Stats.getNumOccurrences());
+
+        Cell ThirdCell = CurrentRow.createCell(2);
+        ThirdCell.setCellValue(Stats.getNumTricksWon());
+
+        Cell FourthCell = CurrentRow.createCell(3);
+
+        FourthCell.setCellValue(Stats.GetAverageTricksWon());
+
+
+    }
+
+    private void WriteAbstractHandStatisticsToRow(int RowToWriteTo, Sheet WriteTo, AbstractHandStatistics HandStats){
+        Row CurrentRow = WriteTo.createRow(RowToWriteTo);
+        Cell FirstCell = CurrentRow.createCell(0);
+
+
+        FirstCell.setCellValue(HandStats.GetCardStrings());
+
+        Cell SecondCell = CurrentRow.createCell(1);
+        SecondCell.setCellValue(HandStats.GetNumOccurrences());
+
+        Cell ThirdCell = CurrentRow.createCell(2);
+        ThirdCell.setCellValue(HandStats.GetNumTricksWon());
+
+        Cell FourthCell = CurrentRow.createCell(3);
+
+        FourthCell.setCellValue(HandStats.AverageNumTricksWon());
+
     }
 
     public void PrintAllBauerStats(){
@@ -491,18 +597,91 @@ public class EuchreGame {
         System.out.println(Str);
     }
 
-    public void WriteToFile(String Filename, Comparator<HandStatistics> Comp, int PointsSimulated, Predicate<HandStatistics> FilterBy){
+    public void PrintAbstractStats(){
+        AbstractHandStatistics.PrintAllHandStats(new Comparator<AbstractHandStatistics>() {
+            @Override
+            public int compare(AbstractHandStatistics o1, AbstractHandStatistics o2) {
+                if(o1.AverageNumTricksWon() > o2.AverageNumTricksWon()){
+                    return 1;
+                }else if(o1.AverageNumTricksWon() < o2.AverageNumTricksWon()){
+                    return -1;
+                }else{
+                    if(o1.GetNumOccurrences() > o2.GetNumOccurrences()){
+                        return 1;
+                    }else if(o1.GetNumOccurrences() < o2.GetNumOccurrences()){
+                        return -1;
+                    }else{
+                        return 0;
+                    }
+                }
+            }
+        });
+    }
 
+    public void WriteAbstractToFile(String Filename, Comparator<AbstractHandStatistics> Comp, int PointsSimulated, Predicate<AbstractHandStatistics> FilterBy){
         try{
             StringBuilder Str = new StringBuilder();
             Str.append(Filename);
-            Str.append("\\OutputSpreadsheet.xlsx");
+            Str.append("\\EuchreStats.xlsx");
             FileInputStream file = new FileInputStream(new File(Str.toString()));
 
             Workbook Workbook = new XSSFWorkbook(file);
             StringBuilder Str2 = new StringBuilder();
             Str2.append(PointsSimulated);
-            Str2.append("DataFourJacksOrFourAces");
+            Str2.append("AbstractStats");
+            if(Workbook.getSheet(Str2.toString()) != null){
+                int Version = 2;
+                while (Workbook.getSheet(Str2.toString()) != null){
+                    Str2.append("v").append(Version);
+                    if(Workbook.getSheet(Str2.toString()) != null){
+                        Str2.delete(Str2.length()-2, Str2.length()-1);
+                        Version++;
+                    }
+                }
+            }
+
+            Sheet sheet = Workbook.createSheet(Str2.toString());
+            sheet.setColumnWidth(0, 6000);
+            sheet.setColumnWidth(1, 4000);
+            ArrayList<AbstractHandStatistics> Hands = AbstractHandStatistics.getHandStatsBank();
+            Collections.sort(Hands, Comp);
+            Hands.removeIf(h -> !FilterBy.test(h));
+            for(int i = 0; i <= Hands.size() - 1 ; i++){
+
+                WriteAbstractHandStatisticsToRow(i, sheet, Hands.get(i));
+            }
+            FileOutputStream Output = new FileOutputStream(Str.toString());
+            Workbook.write(Output);
+            Workbook.close();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void WriteToFile(String Filename, Comparator<HandStatistics> Comp, int PointsSimulated, Predicate<HandStatistics> FilterBy){
+
+        try{
+            StringBuilder Str = new StringBuilder();
+            Str.append(Filename);
+            Str.append("\\EuchreStats.xlsx");
+            FileInputStream file = new FileInputStream(new File(Str.toString()));
+
+            Workbook Workbook = new XSSFWorkbook(file);
+            StringBuilder Str2 = new StringBuilder();
+            Str2.append(PointsSimulated);
+            Str2.append("AllStats");
+            if(Workbook.getSheet(Str2.toString()) != null){
+                int Version = 2;
+                while (Workbook.getSheet(Str2.toString()) != null){
+                    Str2.append("v").append(Version);
+                    if(Workbook.getSheet(Str2.toString()) != null){
+                        Str2.delete(Str2.length()-2, Str2.length()-1);
+                        Version++;
+                    }
+                }
+            }
 
             Sheet sheet = Workbook.createSheet(Str2.toString());
             sheet.setColumnWidth(0, 6000);
@@ -552,6 +731,10 @@ public class EuchreGame {
 
 
     }
+
+
+
+
 
     public void AnnounceScore(){
         System.out.println("Red Team: " + RedTeamPoints + " Black Team: " + BlackTeamPoints);

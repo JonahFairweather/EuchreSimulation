@@ -100,11 +100,41 @@ public class Card {
     boolean CompareTo(Card other) throws IllegalArgumentException{
         //System.out.println(ToString() + " is being compared with: " + other.ToString());
         if(other.GetRank() == GetRank() && this.GetSuit() == other.GetSuit()) throw new IllegalArgumentException("Cards are identical, not allowed");
+        if(GetRank() == main.java.Rank.JACK && GetIsTrump() && !GetIsLeftBauer()) {
 
-        if(GetRank() == main.java.Rank.JACK && GetIsTrump()){
+            return true;
+        }
+        if(other.GetRank() == main.java.Rank.JACK && other.GetIsTrump() && !other.GetIsLeftBauer()){
+
+            return false;
+        }
+        if(GetIsLeftBauer()) {
+
+            return true;
+        }
+        if(other.GetIsLeftBauer()) {
+
+            return false;
+        }
+
+        //THERE ARE NO MORE BAUERS PAST THIS POINT
+        if(other.GetIsLeftBauer() && !(GetIsTrump() && GetRank() == main.java.Rank.JACK)) {
+            return false;
+        }else if(other.GetIsLeftBauer()){
+            System.out.println("Opposing left bauer has been beaten by " + ToString());
+        }
+        if(GetIsLeftBauer() && !(other.GetIsTrump()) && other.GetRank() == main.java.Rank.JACK) { return true; }
+        if(GetRank() == main.java.Rank.JACK && GetIsTrump() && !GetIsLeftBauer()){
             return true;
         }else if(other.GetRank() == main.java.Rank.JACK && other.GetIsTrump()){
             return false;
+        }
+
+        if(!GetIsLedSuit() && !GetIsTrump()){
+            // The other is certainly greater
+            return false;
+        }else if(!other.GetIsTrump() && !other.GetIsLedSuit()){
+            return true;
         }
         if(!other.GetIsTrump() && (this.GetRank().compareTo(other.GetRank()) > 0)) return true;
         if(!other.GetIsTrump() && !other.GetIsLedSuit()) return true;
